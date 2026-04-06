@@ -93,3 +93,5 @@ For even better results, increase `DEFAULT_EPOCHS` to 30-50 in `phase5_6_7_train
 | ROC AUC | 0.997 |
 
 Key insight: with the default threshold of 0.5, the model appeared to have 90% accuracy but **0% recall** — it never actually predicted "cat." Tuning the threshold to 0.07 unlocked the model's true performance. This demonstrates why accuracy alone is dangerous with imbalanced data.
+
+- <!-- add-to-portfolio -->
