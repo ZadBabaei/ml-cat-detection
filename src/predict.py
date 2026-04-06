@@ -68,11 +68,17 @@ try:
 except ImportError:
     HAS_MPL = False
 
-# ── Threshold (must match what was chosen in phase8_9_evaluate.py)
-# The model outputs probabilities. With CIFAR-10's class imbalance
-# the best threshold is often much lower than 0.5.
-# Default here is 0.5; adjust if your training found a better value.
-THRESHOLD = 0.5
+# ── Threshold ──────────────────────────────────────────────────
+# Auto-load the best threshold saved by phase8_9_evaluate.py.
+# Falls back to 0.5 if the file doesn't exist yet.
+THRESHOLD_FILE = PROJECT_ROOT / "models" / "best_threshold.txt"
+if THRESHOLD_FILE.exists():
+    THRESHOLD = float(THRESHOLD_FILE.read_text().strip())
+    print(f"  Loaded threshold from evaluation: {THRESHOLD}")
+else:
+    THRESHOLD = 0.5
+    print(f"  Warning: {THRESHOLD_FILE} not found — using default 0.5")
+    print(f"  Run phase8_9_evaluate.py first for the optimal threshold.")
 
 
 # ─────────────────────────────────────────────────────────────

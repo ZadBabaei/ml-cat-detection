@@ -363,6 +363,12 @@ def main():
             best_t = t_search
 
     print(f"  Best F1 threshold: {best_t:.2f} (F1 = {best_f1:.4f})")
+
+    # Save threshold to a file so predict.py can auto-load it
+    threshold_path = PROJECT_ROOT / "models" / "best_threshold.txt"
+    threshold_path.parent.mkdir(parents=True, exist_ok=True)
+    threshold_path.write_text(str(round(best_t, 4)))
+    print(f"  Saved threshold to: {threshold_path}")
     print()
 
     # Show a range of thresholds centered around the best one

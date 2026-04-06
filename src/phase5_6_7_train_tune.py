@@ -58,13 +58,13 @@ MODELS_DIR = PROJECT_ROOT / "models"
 MODELS_DIR.mkdir(exist_ok=True)
 
 # Training defaults (Phase 5)
-DEFAULT_EPOCHS = 8         # keep low for demo; use 30-50 on real data with GPU
+DEFAULT_EPOCHS = 30        # 30 epochs for real data; reduce to 8 for quick testing
 DEFAULT_BATCH_SIZE = 64
 DEFAULT_LEARNING_RATE = 0.001
 
-# Limit data for sandbox (CPU only). Set to None on your machine for full data.
-MAX_TRAIN_SAMPLES = 2000   # Use None for full dataset
-MAX_VAL_SAMPLES = 400      # Use None for full dataset
+# Set to None for full dataset, or a number to limit for quick testing
+MAX_TRAIN_SAMPLES = None
+MAX_VAL_SAMPLES = None
 
 # Hyperparameter grid (Phase 7)
 HP_GRID = {
@@ -73,7 +73,7 @@ HP_GRID = {
     "dropout_rate": [0.3, 0.5],
 }
 # For speed we'll do random search: try N random combos instead of all
-HP_MAX_TRIALS = 4  # increase for more thorough search
+HP_MAX_TRIALS = 6  # increase for more thorough search
 
 
 # ==============================================================
