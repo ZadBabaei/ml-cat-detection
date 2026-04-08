@@ -160,10 +160,36 @@ def build_cnn(learning_rate=0.001, dropout_rate=0.5):
 # ================================================================
 # PHASE 5 — TRAINING & BACKPROPAGATION
 # ================================================================
+def compute_class_weights(y):
+    """
+    Compute class weights to handle imbalanced data.
+
+    With 90% not-cat and 10% cat, the model learns to always predict
+    "not cat" because that's correct 90% of the time. Class weights
+    fix this by telling the optimizer:
+      "A mistake on a cat image costs 9× more than a mistake on a non-cat."
+
+    Formula: weight_for_class = total_samples / (num_classes × count_of_class)
+      not_cat (0): 50000 / (2 × 45000) = 0.556
+      cat (1):     50000 / (2 × 5000)  = 5.0
+
+    This forces the model to pay attention to the minority class (cats).
+    """
+    n_total = len(y)
+    n_cat = int((y == 1).sum())
+    n_not = n_total - n_cat
+    weight_not = n_total / (2.0 * n_not)
+    weight_cat = n_total / (2.0 * n_cat)
+    weights = {0: weight_not, 1: weight_cat}
+    print(f"  Class weights: not_cat={weight_not:.3f}, cat={weight_cat:.3f}")
+    return weights
+
+
 def train_model(
     model, train_ds, val_ds,
     epochs=DEFAULT_EPOCHS,
     model_name="cat_cnn",
+    class_weight=None,
 ):
     """
     Train the model and return the training history.
@@ -244,6 +270,7 @@ def train_model(
         validation_data=val_ds,
         epochs=epochs,
         callbacks=callbacks,
+        class_weight=class_weight,
         verbose=1,
     )
     elapsed = time.time() - start
@@ -361,7 +388,7 @@ def diagnose_fit(history, model_name="cat_cnn"):
 # ================================================================
 # PHASE 7 — HYPERPARAMETER TUNING
 # ================================================================
-def hyperparameter_search(x_train, y_train, x_val, y_val):
+def hyperparameter_search(x_train, y_train, x_val, y_val, class_weight=None):
     """
     Try different hyperparameter combinations and find the best one.
 
@@ -426,6 +453,7 @@ def hyperparameter_search(x_train, y_train, x_val, y_val):
             validation_data=val_ds,
             epochs=TUNE_EPOCHS,
             verbose=0,
+            class_weight=class_weight,
             callbacks=[
                 keras.callbacks.EarlyStopping(
                     monitor="val_loss", patience=3,
@@ -484,6 +512,9 @@ def main():
     # --- Load data ---
     x_train, y_train, x_val, y_val, x_test, y_test = load_data()
 
+    # --- Compute class weights to handle 90/10 imbalance ---
+    cw = compute_class_weights(y_train)
+
     # ===========================================
     # PHASE 5 — Initial training with defaults
     # ===========================================
@@ -499,7 +530,7 @@ def main():
         dropout_rate=0.5,
     )
 
-    history = train_model(model, train_ds, val_ds, epochs=DEFAULT_EPOCHS, model_name="default")
+    history = train_model(model, train_ds, val_ds, epochs=DEFAULT_EPOCHS, model_name="default", class_weight=cw)
 
     # ===========================================
     # PHASE 6 — Diagnose overfitting/underfitting
@@ -517,7 +548,7 @@ def main():
     print("  PHASE 7 — HYPERPARAMETER TUNING")
     print("~" * 60)
 
-    best_hp = hyperparameter_search(x_train, y_train, x_val, y_val)
+    best_hp = hyperparameter_search(x_train, y_train, x_val, y_val, class_weight=cw)
 
     # ===========================================
     # FINAL — Retrain with best hyperparameters
@@ -540,6 +571,7 @@ def main():
         best_model, best_train_ds, best_val_ds,
         epochs=DEFAULT_EPOCHS,
         model_name="best_tuned",
+        class_weight=cw,
     )
 
     best_diagnosis = diagnose_fit(best_history, model_name="best_tuned")
