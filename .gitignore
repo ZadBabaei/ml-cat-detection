@@ -13,7 +13,7 @@ build/
 env/
 venv/
 
-# Data files (large — download/generate locally)
+# Data files (large; download/generate locally)
 data/processed_splits.npz
 data/normalized_splits.npz
 
